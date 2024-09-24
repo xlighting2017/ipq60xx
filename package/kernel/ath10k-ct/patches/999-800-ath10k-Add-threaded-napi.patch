@@ -1,6 +1,6 @@
 --- a/ath10k-6.9/pci.c
 +++ b/ath10k-6.9/pci.c
-@@ -2268,6 +2268,7 @@ static int ath10k_pci_hif_start(struct a
+@@ -2285,6 +2285,7 @@ static int ath10k_pci_hif_start(struct a
  
  	ath10k_dbg(ar, ATH10K_DBG_BOOT, "boot hif start\n");
  
@@ -8,9 +8,9 @@
  	ath10k_core_napi_enable(ar);
  
  	ath10k_pci_irq_enable(ar);
---- a/ath10k-6.7/sdio.c
-+++ b/ath10k-6.7/sdio.c
-@@ -1862,6 +1862,7 @@ static int ath10k_sdio_hif_start(struct
+--- a/ath10k-6.9/sdio.c
++++ b/ath10k-6.9/sdio.c
+@@ -1863,6 +1863,7 @@ static int ath10k_sdio_hif_start(struct
  	struct ath10k_sdio *ar_sdio = ath10k_sdio_priv(ar);
  	int ret;
  
@@ -18,9 +18,9 @@
  	ath10k_core_napi_enable(ar);
  
  	/* Sleep 20 ms before HIF interrupts are disabled.
---- a/ath10k-6.7/core.c
-+++ b/ath10k-6.7/core.c
-@@ -4539,6 +4539,9 @@ struct ath10k *ath10k_core_create(size_t
+--- a/ath10k-6.9/core.c
++++ b/ath10k-6.9/core.c
+@@ -4591,6 +4591,9 @@ struct ath10k *ath10k_core_create(size_t
  	INIT_WORK(&ar->stop_scan_work, ath10k_wmi_stop_scan_work);
  
  	init_dummy_netdev(&ar->napi_dev);
