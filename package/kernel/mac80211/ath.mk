@@ -1,5 +1,5 @@
 PKG_DRIVERS += \
-	ath ath5k ath6kl ath6kl-sdio ath6kl-usb ath9k ath9k-common ath9k-htc ath10k ath10k-smallbuffers \
+	ath ath5k ath6kl ath6kl-sdio ath6kl-usb ath9k ath9k-common ath9k-htc ath10k ath10k-sdio ath10k-smallbuffers \
 	ath11k ath11k-ahb ath11k-pci ath12k carl9170 owl-loader ar5523 wil6210 qcom-qmi-helpers
 
 PKG_CONFIG_DEPENDS += \
@@ -47,7 +47,7 @@ ifdef CONFIG_PACKAGE_MAC80211_TRACING
 endif
 
 config-$(call config_package,qcom-qmi-helpers) += QCOM_QMI_HELPERS
-config-$(call config_package,ath,regular smallbuffers) += ATH_CARDS ATH_COMMON
+config-$(call config_package,ath,regular sdio smallbuffers) += ATH_CARDS ATH_COMMON
 config-$(CONFIG_PACKAGE_ATH_DEBUG) += ATH_DEBUG ATH10K_DEBUG ATH11K_DEBUG ATH12K_DEBUG ATH9K_STATION_STATISTICS
 config-$(CONFIG_PACKAGE_ATH_DFS) += ATH9K_DFS_CERTIFIED ATH10K_DFS_CERTIFIED
 config-$(CONFIG_PACKAGE_ATH_SPECTRAL) += ATH9K_COMMON_SPECTRAL ATH10K_SPECTRAL ATH11K_SPECTRAL
@@ -76,6 +76,7 @@ config-$(CONFIG_ATH11K_DEBUGFS_HTT_STATS) += ATH11K_DEBUGFS_HTT_STATS
 
 config-$(call config_package,ath9k-htc) += ATH9K_HTC
 config-$(call config_package,ath10k,regular) += ATH10K ATH10K_PCI
+config-$(call config_package,ath10k-sdio,sdio) += ATH10K ATH10K_SDIO
 config-$(call config_package,ath10k-smallbuffers,smallbuffers) += ATH10K ATH10K_PCI ATH10K_SMALLBUFFERS
 config-$(call config_package,ath11k) += ATH11K
 config-$(call config_package,ath11k-ahb) += ATH11K_AHB
@@ -308,8 +309,28 @@ define KernelPackage/ath10k/config
 
        config ATH10K_THERMAL
                bool "Enable thermal sensors and throttling support"
-               depends on PACKAGE_kmod-ath10k || PACKAGE_kmod-ath10k-smallbuffers
+               default y
+               depends on PACKAGE_kmod-ath10k || PACKAGE_kmod-ath10k-sdio || PACKAGE_kmod-ath10k-smallbuffers
 
+endef
+
+define KernelPackage/ath10k-sdio
+  $(call KernelPackage/mac80211/Default)
+  TITLE:=Atheros 802.11ac SDIO wireless cards support
+  URL:=https://wireless.wiki.kernel.org/en/users/drivers/ath10k
+  DEPENDS+= +kmod-ath +kmod-mmc +@DRIVER_11AC_SUPPORT \
+	+ATH10K_THERMAL:kmod-hwmon-core +ATH10K_THERMAL:kmod-thermal
+  FILES:= \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath10k/ath10k_core.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath10k/ath10k_sdio.ko
+  AUTOLOAD:=$(call AutoProbe,ath10k_core ath10k_sdio)
+  MODPARAMS.ath10k_core:=frame_mode=2
+  VARIANT:=sdio
+endef
+
+define KernelPackage/ath10k-sdio/description
+This module adds support for wireless adapters based on
+Atheros IEEE 802.11ac family of chipsets with SDIO bus.
 endef
 
 define KernelPackage/ath10k-smallbuffers
@@ -323,13 +344,13 @@ define KernelPackage/ath11k
   TITLE:=Qualcomm 802.11ax wireless chipset support (common code)
   URL:=https://wireless.wiki.kernel.org/en/users/drivers/ath11k
   DEPENDS+= +kmod-ath +@DRIVER_11AC_SUPPORT +@DRIVER_11AX_SUPPORT \
-  +kmod-crypto-michael-mic +ATH11K_THERMAL:kmod-hwmon-core +ATH11K_THERMAL:kmod-thermal \
+  +kmod-crypto-michael-mic +ATH11K_THERMAL:kmod-hwmon-core \
+  +ATH11K_THERMAL:kmod-thermal +kmod-qcom-qmi-helpers \
   +ATH11K_NSS_SUPPORT:kmod-qca-nss-drv \
   +ATH11K_NSS_MESH_SUPPORT:kmod-qca-nss-drv-wifi-meshmgr \
   +@(ATH11K_NSS_SUPPORT):NSS_DRV_WIFIOFFLOAD_ENABLE \
   +@(ATH11K_NSS_SUPPORT):NSS_DRV_WIFI_EXT_VDEV_ENABLE
-  FILES:=$(PKG_BUILD_DIR)/drivers/soc/qcom/qmi_helpers.ko \
-  $(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath11k/ath11k.ko
+  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath11k/ath11k.ko
 ifdef CONFIG_ATH11K_NSS_SUPPORT
   AUTOLOAD:=$(call AutoProbe,ath11k)
   MODPARAMS.ath11k:=nss_offload=1 frame_mode=2
