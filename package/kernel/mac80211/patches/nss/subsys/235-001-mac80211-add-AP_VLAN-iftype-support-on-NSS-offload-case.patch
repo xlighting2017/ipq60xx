@@ -195,7 +195,7 @@ Signed-off-by: Sathishkumar Muruganandam <murugana@codeaurora.org>
  				drv_remove_interface(local, sdata);
 --- a/net/mac80211/mlme.c
 +++ b/net/mac80211/mlme.c
-@@ -5700,7 +5700,8 @@ static bool ieee80211_assoc_success(stru
+@@ -5701,7 +5701,8 @@ static bool ieee80211_assoc_success(stru
  	 * If we're using 4-addr mode, let the AP know that we're
  	 * doing so, so that it can create the STA VLAN on its side
  	 */
